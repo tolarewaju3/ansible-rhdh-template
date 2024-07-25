@@ -1,9 +1,9 @@
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: quarkus-stssc-template
-  title: Securing a Quarkus Service Software Supply Chain
-  description: Create a Quarkus Service built with Red Hat Trusted Application Pipeline
+  name: ansible-template
+  title: Ansible playbook to deploy environment
+  description: Create an Ansible Playbook to deploy environment
   tags:
     - recommended
     - java
@@ -113,14 +113,6 @@ spec:
               default: {{ gitlab_destination_group }}
               enum:
                 - {{ gitlab_destination_group }}
-            verify_commits:
-              title: Verify Commits
-              type: string
-              description: Verify Git repository commits using Red Hat’s Trusted Artifact Signer (TAS) service
-              default: disabled
-              enum:
-                - enabled
-                - disabled
 
   steps:
     - id: template
@@ -134,16 +126,11 @@ spec:
           component_id: {{ '${{ parameters.component_id }}' }}
           description: {{ '${{ parameters.description }}' }}
           namespace: {{ '${{ parameters.component_id }}' }}-dev
-          group_id: {{ '${{ parameters.group_id }}' }}
-          artifact_id: {{ '${{ parameters.artifact_id }}' }}
-          java_package_name: {{ '${{ parameters.java_package_name }}' }}
           owner: {{ '${{ user.entity.metadata.name }}' }}
           cluster: {{ cluster_subdomain }}
           host: {{ '${{ parameters.repo.host }}' }}
           destination: {{ '${{ parameters.repo.owner }}' }}/{{ '${{ parameters.component_id }}' }}
-          quay_destination: {{ '${{ parameters.image_organization}}' }}/{{ '${{ parameters.component_id }}' }}
           port: 8080
-          verify_commits: {{ '${{ parameters.repo.verify_commits }}' }}
 
     - id: publish
       name: Publish
@@ -159,52 +146,6 @@ spec:
         repoContentsUrl: {{ '${{ steps.publish.output.repoContentsUrl }}' }}
         catalogInfoPath: "/catalog-info.yaml"
 
-    - id: template-gitops-deployment
-      name: Generating Deployment Resources
-      action: fetch:template
-      input:
-        url: ./manifests
-        copyWithoutTemplating: []
-        values:
-          component_id: {{ '${{ parameters.component_id }}' }}
-          description: {{ '${{ parameters.description }}' }}
-          destination: https://{{ '${{ parameters.repo.host }}' }}/{{ '${{ parameters.repo.owner }}' }}/{{ '${{parameters.component_id}}' }}-gitops.git
-          source_repository: https://{{ '${{ parameters.repo.host }}' }}/{{ '${{ parameters.repo.owner }}' }}/{{ '${{parameters.component_id}}' }}.git
-          repository_name: {{ '${{parameters.component_id}}' }}
-          git_owner: {{ '${{ parameters.repo.owner }}' }}
-          cluster: {{ cluster_subdomain }}
-          namespace: {{ '${{ parameters.component_id }}' }}-dev
-          image_registry: {{ '${{ parameters.image_registry }}' }}
-          image_host: {{ '${{ parameters.image_host }}' }}
-          image_organization: {{ '${{ parameters.image_organization }}' }}
-          image_name: {{ '${{ parameters.component_id }}' }}
-          image_tag: {{ '${{ parameters.image_tag }}' }}
-          port: 8080
-          repository_host: {{ '${{ parameters.repo.host }}' }}
-          deployment_name: quarkus-template
-          user: {{ '${{ user.entity.metadata.name }}' }}
-          verify_commits: {{ '${{ parameters.repo.verify_commits }}' }}
-        targetPath: ./tenant-gitops
-
-    - id: publish-gitops
-      name: Publishing to Resource Repository
-      action: publish:gitlab
-      input:
-        repoUrl: "{{ '${{ parameters.repo.host }}' }}?owner={{ '${{ parameters.repo.owner }}' }}&repo={{ '${{parameters.component_id}}' }}-gitops"
-        title: gitops resources for {{ '${{ parameters.component_id }}' }}
-        description: gitops resources for {{ '${{ parameters.component_id }}' }}
-        sourcePath: ./tenant-gitops
-        repoVisibility: public
-
-    - id: create-argocd-resources
-      name: Create ArgoCD Resources
-      action: argocd:create-resources
-      input:
-        appName: {{ '${{ parameters.component_id }}' }}-bootstrap
-        argoInstance: main
-        namespace: janus-argocd
-        repoUrl: https://{{ '${{ parameters.repo.host }}' }}/{{ '${{ parameters.repo.owner }}' }}/{{ '${{ parameters.component_id }}' }}-gitops.git
-        path: 'argocd/'
 
   output:
     links:
