@@ -1,0 +1,38 @@
+# tasks file for database
+---
+- name: Create sensor database
+  redhat.openshift.openshift_process:
+    name: mysql-ephemeral
+    namespace_target: openshift-operators
+    namespace: openshift # only needed if using a template already on the server
+    parameters:
+      NAMESPACE: openshift
+      DATABASE_SERVICE_NAME: sensordb
+      MYSQL_USER: tolarewaju3
+      MYSQL_PASSWORD: tolarewaju3
+      MYSQL_ROOT_PASSWORD: myP@ssword!
+      MYSQL_DATABASE: sensor
+    state: present
+  register: result
+
+- name: Wait for sensor database to be running
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: openshift-operators
+    label_selectors:
+      - name = sensordb
+    wait: yes
+  register: pod
+
+- set_fact:
+    sensord_db_pod: "{{ pod.resources[0].metadata.name }}"
+
+- name: Create call record database
+  kubernetes.core.k8s_exec:
+    namespace: openshift-operators
+    pod: "{{ sensord_db_pod }}"
+    command: "mysql --user=tolarewaju3 --password=tolarewaju3 sensor -e 'CREATE TABLE IF NOT EXISTS call_record (id INT PRIMARY KEY,
+        timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        location varchar(255),
+        signalStrength varchar(255),
+        network varchar(255));'"

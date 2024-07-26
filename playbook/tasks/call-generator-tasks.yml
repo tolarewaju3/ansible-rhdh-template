@@ -1,0 +1,27 @@
+---
+# tasks file for call generator
+- name: Create Call Record Generator
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: call-record-generator
+        namespace: openshift-operators
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: call-record-generator
+        template:
+          metadata:
+            labels:
+              app: call-record-generator
+          spec:
+            containers:
+              - name: call-record-generator
+                image: tolarewaju3/call-record-generator-amd64
+                ports:
+                  - containerPort: 8080
+                    protocol: TCP

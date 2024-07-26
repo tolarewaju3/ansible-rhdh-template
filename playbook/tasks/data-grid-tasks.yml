@@ -1,0 +1,47 @@
+# tasks file for data-grid
+---
+- name: Create Data Grid Operator
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: Subscription
+      metadata:
+        name: datagrid
+        namespace: openshift-operators
+      spec:
+        channel: 8.4.x
+        installPlanApproval: Automatic
+        name: datagrid
+        source: redhat-operators
+        sourceNamespace: openshift-marketplace
+        startingCSV: datagrid-operator.v8.4.15
+
+- name: Wait for data grid operator to be ready
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: openshift-operators
+    label_selectors:
+      - app.kubernetes.io/name=infinispan-operator
+    wait: yes
+
+- name: Create Data Grid Cluster
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: infinispan.org/v1
+      kind: Infinispan
+      metadata:
+        name: datagrid
+        namespace: openshift-operators
+      spec:
+        security:
+          authorization:
+            enabled: false
+          endpointEncryption:
+            type: None
+          endpointAuthentication: false
+        dependencies:
+          artifacts:
+            - maven: 'com.mysql:mysql-connector-j:8.3.0'
+        replicas: 1

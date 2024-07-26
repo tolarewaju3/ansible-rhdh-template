@@ -1,0 +1,24 @@
+---
+- name: 5G Sensor Data Streaming Setup
+  hosts: localhost
+
+  tasks:
+
+    - name: Setup Kafka Cluster & Topic
+      import_tasks: tasks/kafka-tasks.yml
+
+    - name: Setup Data Grid
+      import_tasks: tasks/data-grid-tasks.yml
+
+    - name: Setup Sensor Database
+      import_tasks: tasks/sensor-db-tasks.yml
+
+    - name: Setup Flink
+      import_tasks: tasks/flink-tasks.yml
+
+    - name: Deploy Call Generator
+      import_tasks: tasks/call-generator-tasks.yml
+
+    - name: Deploy Dashboard
+      import_tasks: tasks/dashboard-tasks.yml
+

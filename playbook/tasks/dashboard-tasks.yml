@@ -1,0 +1,123 @@
+# tasks file for dashboard
+---
+- name: Create database for metabase
+  redhat.openshift.openshift_process:
+    name: mysql-ephemeral
+    namespace_target: openshift-operators
+    namespace: openshift # only needed if using a template already on the server
+    parameters:
+      NAMESPACE: openshift
+      DATABASE_SERVICE_NAME: metabasedb
+      MYSQL_USER: tolarewaju3
+      MYSQL_PASSWORD: tolarewaju3
+      MYSQL_ROOT_PASSWORD: myP@ssword!
+      MYSQL_DATABASE: metabase
+    state: present
+
+- name: Wait for metabase database to deploy
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: openshift-operators
+    label_selectors:
+      - name = metabasedb
+    wait: yes
+  register: metabasedb
+
+- set_fact:
+    metabase_db_pod: "{{ metabasedb.resources[0].metadata.name }}"
+
+- name: Transfer database backup
+  kubernetes.core.k8s_cp:
+    namespace: openshift-operators
+    pod: "{{ metabase_db_pod }}"
+    remote_path: /opt/app-root/src/
+    local_path: ./database
+
+- name: Restore metabase database
+  kubernetes.core.k8s_exec:
+    namespace: openshift-operators
+    pod: "{{ metabase_db_pod }}"
+    command: "bash -c 'mysql -u root --password=myP@ssword! -h 127.0.0.1 metabase < /opt/app-root/src/database/backup.sql'"
+  ignore_errors: yes
+
+- name: Create Metabase Container
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: metabase
+        namespace: openshift-operators
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: metabase
+        template:
+          metadata:
+            labels:
+              app: metabase
+          spec:
+            containers:
+              - name: metabase
+                image: metabase/metabase
+                ports:
+                  - containerPort: 3000
+                    protocol: TCP
+                env:
+                  - name: MB_DB_TYPE
+                    value: mysql
+                  - name: MB_DB_DBNAME
+                    value: metabase
+                  - name: MB_DB_PORT
+                    value: '3306'
+                  - name: MB_DB_USER
+                    value: tolarewaju3
+                  - name: MB_DB_PASS
+                    value: tolarewaju3
+                  - name: MB_DB_HOST
+                    value: metabasedb
+
+- name: Wait for maetabase to deploy
+  kubernetes.core.k8s_info:
+    kind: Deployment
+    namespace: openshift-operators
+    name: metabase
+    wait: yes
+
+- name: Create Service for metabase
+  redhat.openshift.k8s:
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: metabase
+        namespace: openshift-operators
+      spec:
+        ports:
+        - name: 3000-tcp
+          port: 3000
+          targetPort: 3000
+          protocol: TCP
+        selector:
+          app: metabase
+    state: present
+
+- name: Expose the metabase route
+  redhat.openshift.openshift_route:
+    service: metabase
+    namespace: openshift-operators
+    state: present
+    termination: edge
+  register: metabase_route
+
+- set_fact:
+    metabase_url: "{{ metabase_route.result.spec.host }}"
+
+- name: Show Metabase URL
+  ansible.builtin.debug:
+    msg:
+    - "To see the dashboard, visit https://{{ metabase_url }}"
+    - "Username: someone@someone.com"
+    - "Password: GxJTgLlN3Nhtas"
