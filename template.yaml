@@ -39,9 +39,6 @@ spec:
               title: Repo Host
               type: string
               description: Your SCM host
-              default: {{ gitlab_host }}
-              enum:
-                - {{ gitlab_host }}
             owner:
               title: Repo Owner
               type: string
@@ -63,7 +60,7 @@ spec:
           description: ${{ parameters.description }}
           namespace: ${{ parameters.component_id }}-dev
           owner: ${{ user.entity.metadata.name }}
-          cluster: {{ cluster_subdomain }}
+          cluster: .apps.cluster-dm49l.sandbox1573.opentlc.com
           host: ${{ parameters.repo.host }}
           destination: ${{ parameters.repo.owner }}/${{ parameters.component_id }}
           port: 8080
