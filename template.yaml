@@ -47,6 +47,8 @@ spec:
               default: development
               enum:
                 - development
+        cluster:
+
 
   steps:
     - id: template
@@ -62,6 +64,7 @@ spec:
           namespace: ${{ parameters.component_id }}-dev
           owner: ${{ user.entity.metadata.name }}
           host: ${{ parameters.repo.host }}
+          cluster: .apps.cluster-x2fk7.sandbox52.opentlc.com
           destination: ${{ parameters.repo.owner }}/${{ parameters.component_id }}
           port: 8080
 
