@@ -39,6 +39,7 @@ spec:
               title: Repo Host
               type: string
               description: Your SCM host
+              ui:field: RepoUrlPicker
             owner:
               title: Repo Owner
               type: string
