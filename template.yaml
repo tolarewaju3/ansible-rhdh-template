@@ -25,21 +25,6 @@ spec:
           default: my-quarkus-app
           ui:field: EntityNamePicker
           maxLength: 23
-        group_id:
-          title: Group Id
-          type: string
-          default: redhat.janus
-          description: Maven Group Id
-        artifact_id:
-          title: Artifact Id
-          type: string
-          default: quarkus-app
-          description: Maven Artifact Id
-        java_package_name:
-          title: Java Package Name
-          default: org.redhat.janus
-          type: string
-          description: Name for the java package. eg (com.redhat.blah)
         description:
           title: Description
           type: string
