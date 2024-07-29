@@ -6,9 +6,7 @@ metadata:
   description: Create an Ansible Playbook to deploy environment
   tags:
     - recommended
-    - java
-    - quarkus
-    - maven
+    - ansible
 spec:
   owner: rhdh
   type: service
