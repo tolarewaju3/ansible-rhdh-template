@@ -31,6 +31,10 @@ spec:
           title: App Repo URL
           type: string
           description: App repo url
+        repoOwner:
+          title: App Repo Owner
+          type: string
+          description: App repo owner
     - title: Cluster Information
       required:
         - repo
@@ -55,14 +59,14 @@ spec:
           owner: ${{ user.entity.metadata.name }}
           cluster: .apps.cluster-x2fk7.sandbox52.opentlc.com
           host: ${{ parameters.repo.host }}
-          destination: ${{ parameters.repo.owner }}/${{ parameters.component_id }}
+          destination: ${{ parameters.repo }}/${{ parameters.component_id }}
           port: 8080
 
     - id: publish
       name: Publish
       action: publish:gitlab
       input:
-        repoUrl: "${{ parameters.repo.host }}?owner=${{ parameters.repo.owner }}&repo=${{parameters.component_id}}"
+        repoUrl: "${{ parameters.repo }}?owner=${{ parameters.repoOwner }}&repo=${{parameters.component_id}}"
         repoVisibility: public
 
     - id: register
