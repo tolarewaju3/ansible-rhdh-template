@@ -1,8 +1,8 @@
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: ansible-template
-  title: Ansible playbook to deploy environment
+  name: ansible-playbook-template
+  title: Create an Ansible Project
   description: Create an Ansible Playbook to deploy environment
   tags:
     - recommended
@@ -19,19 +19,14 @@ spec:
           title: Name
           type: string
           description: Unique name of the component
-          default: my-quarkus-app
+          default: ansible-playbook
           ui:field: EntityNamePicker
           maxLength: 23
         description:
           title: Description
           type: string
           description: Help others understand what this website is for.
-          default: A cool quarkus app
-        repo:
-          title: Description
-          type: string
-          description: Help others understand what this website is for.
-          default: A cool quarkus app
+          default: An ansible playbook
     - title: Application repository Information
       required:
         - repo
@@ -51,6 +46,10 @@ spec:
               default: development
               enum:
                 - development
+            cluster:
+              title: Cluster Url
+              type: string
+              description: The cluster to host the play
 
   steps:
     - id: template
@@ -65,7 +64,7 @@ spec:
           description: ${{ parameters.description }}
           namespace: ${{ parameters.component_id }}-dev
           owner: ${{ user.entity.metadata.name }}
-          cluster: .apps.cluster-x2fk7.sandbox52.opentlc.com
+          cluster: ${{ parameters.cluster }}
           host: ${{ parameters.repo.host }}
           destination: ${{ parameters.repo.owner }}/${{ parameters.component_id }}
           port: 8080
