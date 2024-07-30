@@ -46,10 +46,10 @@ spec:
               default: development
               enum:
                 - development
-            cluster:
-              title: Cluster Url
-              type: string
-              description: The cluster to host the play
+        cluster:
+          title: Cluster Url
+          type: string
+          description: The cluster to host the play
 
   steps:
     - id: template
