@@ -27,6 +27,7 @@ spec:
           type: string
           description: Help others understand what this website is for.
           default: An ansible playbook
+
     - title: Application repository Information
       required:
         - repo
@@ -46,10 +47,26 @@ spec:
               default: development
               enum:
                 - development
-        cluster:
-          title: Cluster Url
-          type: string
-          description: The cluster to host the play
+        deployToCluster:
+          title: Deploy to a cluster?
+          type: boolean
+          default: true
+
+      dependencies:
+        deployToCluster:
+          allOf:
+            - if:
+                properties:
+                  deployToCluster:
+                    const: true
+              then:
+                properties:
+                  cluster:
+                    title: Cluster Url
+                    type: string
+                    description: The cluster to host the play
+                required:
+                  - cluster
 
   steps:
     - id: template
